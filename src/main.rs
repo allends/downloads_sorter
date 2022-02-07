@@ -2,6 +2,7 @@ use std::fs;
 use std::env;
 use std::vec::Vec;
 use std::path::PathBuf;
+use indicatif::ProgressBar;
 
 extern crate fs_extra;
 extern crate dirs;
@@ -26,16 +27,18 @@ fn main() {
     let categories = ["App", "Archive", "Audio", "Book", "Doc", "Font", "Image", "Text", "Video", "Other"];
 
     let mut categories_list: Vec<Vec<PathBuf>> = Vec::new();
-    for category in categories {
+    for (index, category) in categories.iter().enumerate() {
         categories_list.push(Vec::new());
         let category_path = archive_base_directory.join(category);
         let create_check_result = create_all(&category_path, false);
         match create_check_result {
-            Ok(_) => println!("Category Folder Set Up!"),
+            Ok(_) => print!("{}: ✅", categories[index]),
             Err(e) => println!("Oh no! {}", e),
         }
         assert!(category_path.exists());
+        println!();
     }
+    println!("Folders successfully initialized! Time for takeoff 🚀");
 
     // SECTION THREE: SORT THE FILES IN THE DOWNLOADS FOLDER
     for file_path in file_paths {
@@ -66,15 +69,18 @@ fn main() {
 
 
     // SECTION FOUR: MOVE THE FILES INTO THEIR FOLDERS
+    let bar = ProgressBar::new(9);
     let options = fs_extra::dir::CopyOptions::new();
     for (index, list) in categories_list.iter().enumerate() {
+        bar.inc(1);
         let destination_folder = archive_base_directory.join(categories[index]);
         let move_result = move_items(&list, &destination_folder, &options);
         match move_result {
-            Ok(_) => println!("Moved all of the {} files", categories[index]),
-            Err(e) => println!("Something went terribly wrong :'( INFO: {}", e),
+            Ok(_) => continue,
+            Err(e) => println!("Something went terribly wrong while moving {} files :'( INFO: {}", categories[index], e),
         }
         println!();
     }
+    bar.finish();
 
 }
