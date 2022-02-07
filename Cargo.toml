@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 fs_extra = "1.2.0"
 infer = "0.3"
+dirs = "4.0.0"

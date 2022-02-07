@@ -1,10 +1,10 @@
 use std::fs;
 use std::env;
 use std::vec::Vec;
-use std::path::Path;
 use std::path::PathBuf;
 
 extern crate fs_extra;
+extern crate dirs;
 use fs_extra::dir::*;
 use fs_extra::move_items;
 
@@ -14,18 +14,13 @@ fn main() {
 
     // SECTION ONE: SET UP OS SPECIFIC STUFF
     println!("{}", env::consts::OS);
-    let downloads_path = match env::consts::OS {
-        "windows" => Path::new("C:\\Users\\allen\\Downloads"),
-        _ => Path::new("./")
-    };
-    if downloads_path.eq(Path::new("./")) {
-        return
-    }
+    let downloads_pathbuf = dirs::download_dir().unwrap();
+    let downloads_path = downloads_pathbuf.as_path();
     let file_paths = fs::read_dir(downloads_path).unwrap();
 
     // TODO: MAKE THIS CHANGE BASED ON OS
-    let archive_base_directory = Path::new("C:\\Users\\allen\\Archives");
-
+    let archive_base_buf = dirs::home_dir().unwrap();
+    let archive_base_directory = archive_base_buf.as_path().join("Archives");
 
     // SECTION TWO: MAKE THE FOLDERS FOR EACH CATEGORY
     let categories = ["App", "Archive", "Audio", "Book", "Doc", "Font", "Image", "Text", "Video", "Other"];
