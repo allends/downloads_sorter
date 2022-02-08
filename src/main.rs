@@ -1,5 +1,3 @@
-use std::fs;
-
 mod sorter;
 use sorter::sort;
 
