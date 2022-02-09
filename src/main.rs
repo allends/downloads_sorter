@@ -19,10 +19,10 @@ fn main() {
 
 
     // SECTION THREE: SORT THE FILES IN THE DOWNLOADS FOLDER
-    sort(downloads_path, file_paths, &mut sorted_list);
+    let file_count = sort(&downloads_path, file_paths, &mut sorted_list);
 
 
     // SECTION FOUR: MOVE THE FILES INTO THEIR FOLDERS
-    move_to_archive(archive_base_directory, sorted_list, categories);
+    move_to_archive(&downloads_path, archive_base_directory, sorted_list, categories, file_count);
 
 }

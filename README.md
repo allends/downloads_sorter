@@ -16,3 +16,7 @@ The Archive categories are:
 - Video
 
 When you run downloads_sorter, all of your files will be move into the archive!
+
+Plans:
+Select categories and set them up with custom keywords. (Keep these in a config somewhere)
+Regex catgerization of files. (/hw[1-9]+/g for homeworks that always have the same naming convention)
