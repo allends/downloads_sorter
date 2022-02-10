@@ -49,7 +49,7 @@ dependencies = [
 
 [[package]]
 name = "downloads_sorter"
-version = "0.1.3"
+version = "0.1.5"
 dependencies = [
  "dirs",
  "fs_extra",

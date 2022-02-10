@@ -1,6 +1,6 @@
 [package]
 name = "downloads_sorter"
-version = "0.1.3"
+version = "0.1.5"
 authors = ["Allen Davis-Swing <allen.davisswing@rutgers.edu>"]
 license = "MIT"
 description = "A fast and customizable way to automatically sort your files!"
