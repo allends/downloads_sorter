@@ -37,6 +37,6 @@ pub fn move_to_archive(downloads_path: &PathBuf, archive_base_directory: PathBuf
       println!("{}", failed_move);
     }
   } else {
-    println!("Mission accomplished, sorted and moved {} files!", file_count);
+    println!("Mission accomplished, sorted and moved {} of {} files!", bar.position(), file_count);
   }
 }

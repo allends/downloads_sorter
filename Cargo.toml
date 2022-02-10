@@ -17,5 +17,5 @@ fs_extra = "1.2.0"
 infer = "0.3"
 dirs = "4.0.0"
 indicatif = "0.16.2"
-config = "0.11"
+toml = "0.5.8"
 serde = { version = "1.0", features = ["derive"] }

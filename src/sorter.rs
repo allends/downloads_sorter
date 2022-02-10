@@ -1,34 +1,66 @@
+use crate::config::{Config, FolderConfig};
 use std::vec::Vec;
 use std::path::PathBuf;
 use std::fs::ReadDir;
+use std::io::Error;
 
-pub fn sort( downloads_path: &PathBuf, file_paths: ReadDir, sorted_list: &mut Vec<Vec<String>>) ->  u64{
+pub fn sort( downloads_path: &PathBuf, file_paths: ReadDir, sorted_list: &mut Vec<Vec<String>>, config: Config) ->  u64{
+    // count the files for the loading bar later
     let mut file_count: u64 = 0;
+    let category_count = config.folderconfig.len();
+
+    // iterate over the files in the folder 
     for file_path in file_paths {
+        file_count += 1;
         let current_path = file_path.unwrap().file_name().into_string().unwrap();
         let kind = infer::get_from_path(downloads_path.join(&current_path));
-        let result = match kind {
-            Ok(res) => match res {
-                Some(file_type) => file_type.matcher_type(),
-                None => infer::MatcherType::CUSTOM,
-            },
-            Err(_) => infer::MatcherType::CUSTOM,
-        };
-        let file_name = current_path;
-        match result {
-            infer::MatcherType::APP => sorted_list[0].push(file_name),
-            infer::MatcherType::ARCHIVE => sorted_list[1].push(file_name),
-            infer::MatcherType::AUDIO => sorted_list[2].push(file_name),
-            infer::MatcherType::BOOK => sorted_list[3].push(file_name),
-            infer::MatcherType::DOC => sorted_list[4].push(file_name),
-            infer::MatcherType::FONT => sorted_list[5].push(file_name),
-            infer::MatcherType::IMAGE => sorted_list[6].push(file_name),
-            infer::MatcherType::TEXT => sorted_list[7].push(file_name),
-            infer::MatcherType::VIDEO => sorted_list[8].push(file_name),
-            _ => sorted_list[9].push(file_name)
-        }
-        file_count += 1;
+
+        put_in_list(category_count, sorted_list, &config.folderconfig, current_path, kind);
     }
     file_count
 }
 
+fn put_in_list(category_count: usize, sorted_list: &mut Vec<Vec<String>>, folderconfig: &Vec<FolderConfig>, current_path: String, kind: Result<Option<infer::Type>, Error>) {
+
+    let file_matchertype = match kind {
+        Ok(res) => match res {
+            Some(file_type) => file_type.matcher_type(),
+            None => infer::MatcherType::CUSTOM,
+        },
+        Err(_) => infer::MatcherType::CUSTOM,
+    };
+    let file_matchertype = map_matchertype_to_string(file_matchertype);
+
+    for index in 0..category_count {
+        for keyword in &folderconfig[index].keywords {
+            if current_path.contains(keyword) {
+                println!("matched {} to {:?}", keyword, current_path);
+                sorted_list[index].push(current_path.clone());
+                return
+            }
+        }
+        for matchertype in &folderconfig[index].matchertypes {
+            if matchertype.eq(&file_matchertype) {
+                println!("matched {} to {:?}", matchertype, file_matchertype);
+                sorted_list[index].push(current_path.clone());
+                return
+            }
+        }
+        return
+    }
+}
+
+fn map_matchertype_to_string(matchertype: infer::MatcherType) -> String {
+    let mapping = match matchertype {
+        infer::MatcherType::APP => "app",
+        infer::MatcherType::ARCHIVE => "archive",
+        infer::MatcherType::AUDIO => "audio",
+        infer::MatcherType::BOOK => "book",
+        infer::MatcherType::DOC => "document",
+        infer::MatcherType::FONT => "font",
+        infer::MatcherType::IMAGE => "image",
+        infer::MatcherType::TEXT => "text",
+        _ => "invalid",
+    };
+    mapping.to_string()
+}

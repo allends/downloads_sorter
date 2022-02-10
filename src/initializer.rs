@@ -1,29 +1,48 @@
+extern crate toml;
+
+use crate::config::{load_config, update_config, Config};
 use std::fs;
 use std::env;
-use serde::Deserialize;
+
 use std::fs::ReadDir;
-use std::path::PathBuf;
-use config::{ Config, File, FileFormat};
+use std::path::{PathBuf, Path};
+
 use fs_extra::dir::create_all;
 
-#[derive(Debug, Deserialize)]
-struct SortingConfig {
-  homework: String,
-}
 
-pub fn setup() -> (PathBuf, PathBuf, Vec<Vec<String>>, ReadDir, Vec<String> ) {
+
+pub fn setup() -> (PathBuf, PathBuf, Vec<Vec<String>>, ReadDir, Vec<String>, Config ) {
   // SECTION ONE: SET UP OS SPECIFIC STUFF
   println!("{} mode", env::consts::OS);
-  let downloads_path = dirs::download_dir().unwrap();
-  load_config();
+  let config = load_config();
+  let downloads_path = dirs::download_dir().unwrap_or(PathBuf::from(&config.sortingdir));
+  if !Path::new(&downloads_path).is_dir() || downloads_path.to_str().unwrap().eq("none") {
+    println!("There was a problem with the sorting folder (where files are being read from)! Check the downloads_sorter.toml to make sure this is correct!");
+  }
   update_config();
 
   // CONFIGURATION
-  let home_directory = dirs::home_dir().unwrap();
-  let archive_base_directory = home_directory.as_path().join("Archives");
+  let archive_base_directory = match config.archivedir.as_str() {
+    "none" => {
+      match dirs::home_dir() {
+        Some(env_home_dir) => env_home_dir.as_path().join("Archives"),
+        None => {
+          println!("There was a problem with the sorting folder (where files are being read from)! Check the downloads_sorter.toml to make sure this is correct!");
+          std::process::exit(0)
+        },
+      }
+    },
+    _ => {
+      if !Path::new(&config.archivedir).is_dir() {
+        println!("There was a problem with the sorting folder (where files are being read from)! Check the downloads_sorter.toml to make sure this is correct!");
+        std::process::exit(0)
+      }
+      PathBuf::from(&config.archivedir)
+    }
+  };
 
   // SECTION TWO: MAKE THE FOLDERS FOR EACH CATEGORY
-  let categories: Vec<String> = vec!["App", "Archive", "Audio", "Book", "Doc", "Font", "Image", "Text", "Video", "Other"].into_iter().map(|name| String::from(name)).collect();
+  let categories: Vec<String> = config.folderconfig.iter().map(|rule| rule.name.clone()).collect();
 
   let mut sorted_list: Vec<Vec<String>> = Vec::new();
   for (index, category) in categories.iter().enumerate() {
@@ -40,22 +59,6 @@ pub fn setup() -> (PathBuf, PathBuf, Vec<Vec<String>>, ReadDir, Vec<String> ) {
   let file_paths = fs::read_dir(downloads_path.as_path()).unwrap();
   println!("All systems check! Time for takeoff 🚀");
 
-  (downloads_path, archive_base_directory, sorted_list, file_paths, categories )
+  (downloads_path, archive_base_directory, sorted_list, file_paths, categories, config)
 }
 
-fn update_config() {
-  let mut settings = Config::new();
-  let _ = settings.set("Homework", "hw-homework-problem");
-  // println!("{:?}", settings);
-}
-
-fn load_config() {
-  let config_path = dirs::home_dir().unwrap().join(".config").join("downloads_sorter.toml");
-  let mut settings = Config::default();
-  settings.merge(File::new(config_path.to_str().unwrap(), FileFormat::Toml)).unwrap();
-  println!("{:?}", settings);
-
-  let config: SortingConfig = settings.try_into().unwrap();
-  println!("{:?}", config);
-
-}
