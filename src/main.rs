@@ -1,3 +1,4 @@
+mod config;
 mod sorter;
 use sorter::sort;
 
@@ -15,14 +16,13 @@ extern crate infer;
 fn main() {
 
     // SECTION ONE: SET UP OS SPECIFIC STUFF
-    let (downloads_path, archive_base_directory, mut sorted_list, file_paths, categories) = setup();
+    let (downloads_path, archive_base_directory, mut sorted_list, file_paths, categories, config) = setup();
 
 
     // SECTION THREE: SORT THE FILES IN THE DOWNLOADS FOLDER
-    sort(downloads_path, file_paths, &mut sorted_list);
+    let file_count = sort(&downloads_path, file_paths, &mut sorted_list, config);
 
 
     // SECTION FOUR: MOVE THE FILES INTO THEIR FOLDERS
-    move_to_archive(archive_base_directory, sorted_list, categories);
-
+    move_to_archive(&downloads_path, archive_base_directory, sorted_list, categories, file_count);
 }
