@@ -32,8 +32,6 @@ Valid matcher types are:
 ['app', 'archive', 'audio', 'document', 'font', 'image', 'text' ]
 ```
 
-When you run downloads_sorter, all of your files will be move into the archive!
-
 Plans:
 Regex catgerization of files.
 Terminal menu.
